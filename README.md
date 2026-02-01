@@ -1,4 +1,4 @@
-# supperajan
+# SupperAjan
 
 AI tabanlı mobil uygulama konsepti: kullanıcının en yakın arkadaşı gibi davranan, empatik ve kişiselleştirilebilir bir asistan.
 
