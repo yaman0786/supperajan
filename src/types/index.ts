@@ -43,6 +43,12 @@ export interface AvatarState {
   emotionalTone: EmotionalTone;
 }
 
+export interface AvatarConfig {
+  use3D: boolean;
+  modelPath?: string; // Path to GLB file for 3D avatar
+  fallbackTo2D?: boolean; // Fallback to 2D if 3D fails to load
+}
+
 export interface AIResponse {
   text: string;
   emotionalTone: EmotionalTone;

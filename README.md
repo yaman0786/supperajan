@@ -16,6 +16,8 @@
 
 ### 👾 3D Avatar
 - **Futuristik Tasarım**: Metalik gövde, mavi neon detaylar
+- **GLB Model Desteği**: Kendi 3D GLB modellerinizi yükleyebilirsiniz
+- **2D Fallback**: 3D model yüklenemezse otomatik 2D avatar'a geçiş
 - **Gerçekçi Animasyonlar**:
   - Dudak senkronizasyonu (lip sync)
   - Jestler (el sallama, başını sallama, dinleme)
@@ -144,6 +146,13 @@ npm start
   - Sesli yanıtları açın/kapatın
   - Duygusal analizi yapılandırın
   - Veri öğrenme ayarlarını düzenleyin
+
+### 5. 3D Avatar (GLB) Kullanımı
+- **GLB Model Yükleme**: Kendi 3D avatar modelinizi kullanabilirsiniz
+- Model gereksinimler: GLB/GLTF formatı, maksimum 5MB
+- Detaylı bilgi için: [GLB Avatar Rehberi](GLB_AVATAR_GUIDE.md)
+- Örnekler: `assets/models/` klasörüne model ekleyin
+- Fallback: 3D model yüklenemezse otomatik 2D avatar kullanılır
 
 ## 🎨 Tema ve Tasarım
 

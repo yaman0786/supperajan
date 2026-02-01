@@ -10,7 +10,7 @@ import { Text, Chip, useTheme } from 'react-native-paper';
 import Avatar from '../components/Avatar';
 import ChatMessageList from '../components/ChatMessageList';
 import ChatInput from '../components/ChatInput';
-import { Message, AvatarState, UserProfile, EmotionalTone } from '../types';
+import { Message, AvatarState, UserProfile, EmotionalTone, AvatarConfig } from '../types';
 import AIService from '../services/AIService';
 import StorageService from '../services/StorageService';
 
@@ -32,6 +32,11 @@ const ChatScreen: React.FC = () => {
     gesture: 'idle',
     lipSyncActive: false,
     emotionalTone: 'neutral',
+  });
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>({
+    use3D: false, // Default to 2D, can be changed in settings
+    fallbackTo2D: true,
+    modelPath: undefined, // Path to GLB file when user uploads one
   });
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -144,7 +149,11 @@ const ChatScreen: React.FC = () => {
     >
       {/* Avatar Section */}
       <View style={styles.avatarContainer}>
-        <Avatar state={avatarState} isAnimating={isProcessing} />
+        <Avatar 
+          state={avatarState} 
+          isAnimating={isProcessing}
+          config={avatarConfig}
+        />
         <Text
           variant="titleMedium"
           style={[styles.assistantName, { color: theme.colors.onSurface }]}

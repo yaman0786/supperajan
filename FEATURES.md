@@ -67,7 +67,55 @@ Süpperajan: Arkadaş, üzüldüğünü hissediyorum. Yanındayım, dinliyorum.
 
 ### 2. 3D Avatar Sistemi
 
-#### Görsel Tasarım
+#### Avatar Tipleri
+
+**2D Avatar (Varsayılan)**:
+- React Native bileşenleriyle oluşturulmuş
+- Hızlı ve performanslı
+- Tüm cihazlarda çalışır garanti
+
+**3D GLB Avatar (Yeni!)**:
+- Gerçek 3D model desteği (GLB/GLTF format)
+- Kullanıcı kendi modelini yükleyebilir
+- WebGL tabanlı rendering (expo-three)
+- Animasyon desteği (idle, talking, gestures)
+- 2D'ye otomatik fallback
+
+#### GLB Model Özellikleri
+
+**Format Desteği**:
+- GLB (GL Transmission Format Binary)
+- GLTF (JSON format)
+- Maksimum dosya boyutu: 5MB önerilir
+- Polygon sayısı: 10,000-50,000 arası
+
+**Model Gereksinimleri**:
+```
+Avatar Model Yapısı:
+├── Mesh (Geometri)
+│   ├── Head
+│   ├── Body
+│   └── Accessories
+├── Materials
+│   ├── PBR Materials
+│   └── Emissive (Neon efektler)
+└── Animations (isteğe bağlı)
+    ├── Idle
+    ├── Talking
+    └── Gestures
+```
+
+**Kullanım**:
+```typescript
+// 3D Avatar aktifleştirme
+const avatarConfig = {
+  use3D: true,
+  modelPath: require('../../assets/models/robot.glb'),
+  fallbackTo2D: true,
+};
+```
+
+#### Görsel Tasarım (2D Avatar)
 
 **Metalik Gövde**:
 - Renk: #708090 (Metalik Gri)
