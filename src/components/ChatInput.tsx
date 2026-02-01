@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, IconButton, useTheme, Surface } from 'react-native-paper';
+import { isFeatureSupported } from '../utils/platform';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -11,6 +12,7 @@ interface ChatInputProps {
 /**
  * ChatInput Component
  * Material Design input with voice and text capabilities
+ * Voice input only available on supported platforms
  */
 const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
@@ -19,6 +21,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   const [message, setMessage] = useState('');
   const theme = useTheme();
+  const voiceSupported = isFeatureSupported('voice');
 
   const handleSend = () => {
     if (message.trim()) {
@@ -30,7 +33,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <Surface style={styles.container} elevation={4}>
       <View style={styles.inputContainer}>
-        {onVoiceInput && (
+        {onVoiceInput && voiceSupported && (
           <IconButton
             icon="microphone"
             size={24}

@@ -1,10 +1,22 @@
-# Süpperajan - AI Companion Mobile Application
+# Süpperajan - AI Companion Application
 
 > Yapay zeka tabanlı empatik asistan - Yol arkadaşınız, dostunuz, sizin istediğiniz her şey
 
 ![React Native](https://img.shields.io/badge/React%20Native-0.73.0-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0.4-blue)
 ![Material Design](https://img.shields.io/badge/Material%20Design-3-purple)
+![Multi-Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Android%20%7C%20iOS%20%7C%20macOS-green)
+
+## 🌍 Multi-Platform Support
+
+**Süpperajan** artık **dört platformda** çalışıyor:
+
+- 🌐 **Web** - Tarayıcıda çalışır, kurulum gerektirmez
+- 📱 **Android** - Android 6.0+ telefonlar
+- 📱 **iOS** - iPhone ve iPad (iOS 13.0+)
+- 💻 **macOS** - Mac bilgisayarlar (macOS 11.0+)
+
+Tek kod tabanı, dört platform! 🚀
 
 ## 📱 Özellikler
 
@@ -87,11 +99,40 @@ supperajan/
 
 ### Gereksinimler
 - Node.js >= 18
-- React Native CLI
-- Xcode (iOS için)
-- Android Studio (Android için)
+- Platform-specific tools (see below)
 
-### Adımlar
+### Quick Start by Platform
+
+#### 🌐 Web
+```bash
+npm install
+npm run web
+# Open http://localhost:3000
+```
+
+#### 📱 Android
+```bash
+npm install
+npm run android
+# Requires: Android Studio, Android SDK
+```
+
+#### 📱 iOS (macOS only)
+```bash
+npm install
+cd ios && pod install && cd ..
+npm run ios
+# Requires: Xcode, CocoaPods
+```
+
+#### 💻 macOS
+```bash
+npm install
+npm run macos
+# Requires: Xcode
+```
+
+### Detaylı Kurulum
 
 1. **Bağımlılıkları yükleyin**:
 ```bash
@@ -107,6 +148,11 @@ cd ios && pod install && cd ..
 
 3. **Uygulamayı çalıştırın**:
 
+Web için:
+```bash
+npm run web
+```
+
 Android için:
 ```bash
 npm run android
@@ -117,10 +163,17 @@ iOS için:
 npm run ios
 ```
 
-Metro bundler'ı başlatmak için:
+macOS için:
+```bash
+npm run macos
+```
+
+Metro bundler'ı başlatmak için (mobile):
 ```bash
 npm start
 ```
+
+**📚 Multi-Platform Rehberi:** Detaylı platform bilgileri için [MULTI_PLATFORM_GUIDE.md](MULTI_PLATFORM_GUIDE.md) dosyasına bakın.
 
 ## 📖 Kullanım
 

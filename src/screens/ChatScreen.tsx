@@ -13,6 +13,7 @@ import ChatInput from '../components/ChatInput';
 import { Message, AvatarState, UserProfile, EmotionalTone, AvatarConfig } from '../types';
 import AIService from '../services/AIService';
 import StorageService from '../services/StorageService';
+import { isFeatureSupported } from '../utils/platform';
 
 /**
  * ChatScreen - Main conversation interface
@@ -138,6 +139,11 @@ const ChatScreen: React.FC = () => {
 
   const handleVoiceInput = () => {
     // Voice input implementation would go here
+    // Only available on mobile platforms
+    if (!isFeatureSupported('voice')) {
+      console.log('Voice input not supported on this platform');
+      return;
+    }
     console.log('Voice input triggered');
   };
 

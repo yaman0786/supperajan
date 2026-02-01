@@ -58,3 +58,12 @@ yarn-error.log
 # Misc
 .env
 .env.local
+
+# Web build
+web-build/
+dist/
+.cache/
+
+# macOS specific
+/macos/build/
+/macos/Pods/
