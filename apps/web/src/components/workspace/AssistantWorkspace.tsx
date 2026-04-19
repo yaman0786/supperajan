@@ -6,6 +6,7 @@ import { ConversationPanel } from '@/components/chat/ConversationPanel';
 import { ControlBar } from '@/components/controls/ControlBar';
 import { AssistantStatusBadge } from '@/components/ui/AssistantStatusBadge';
 import { SidePanel } from '@/components/workspace/SidePanel';
+import { RealtimeProvider } from '@/components/workspace/RealtimeProvider';
 import { useAssistantStore } from '@/store/assistant.store';
 
 /**
@@ -28,6 +29,7 @@ export function AssistantWorkspace() {
   );
 
   return (
+    <RealtimeProvider>
     <main className="relative flex h-dvh w-full overflow-hidden bg-bg-base">
       {/* Background ambient gradient */}
       <div
@@ -77,5 +79,6 @@ export function AssistantWorkspace() {
         {/* Mobile layout handled in Phase 3 */}
       </div>
     </main>
+    </RealtimeProvider>
   );
 }

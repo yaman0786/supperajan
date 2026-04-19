@@ -4,6 +4,7 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module.js';
 import { loadEnv } from '@supperajan/config';
@@ -15,12 +16,12 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({
-      logger: env.NODE_ENV === 'development',
-      trustProxy: true,
-    }),
+    new FastifyAdapter({ logger: false, trustProxy: true }),
     { bufferLogs: true },
   );
+
+  // ── Socket.IO adapter (must be before listen) ───────────────────────────
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   // ── Global validation pipe ──────────────────────────────────────────────
   app.useGlobalPipes(
@@ -29,6 +30,7 @@ async function bootstrap() {
       forbidNonWhitelisted: false,
       transform: true,
       transformOptions: { enableImplicitConversion: true },
+      stopAtFirstError: true,
     }),
   );
 
@@ -42,10 +44,16 @@ async function bootstrap() {
   });
 
   // ── Global prefix ────────────────────────────────────────────────────────
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('api/v1', {
+    exclude: ['health', 'health/live', 'health/ready'],
+  });
 
   await app.listen(env.PORT, '0.0.0.0');
-  logger.info(`API server running on port ${env.PORT}`, { port: env.PORT, env: env.NODE_ENV });
+  logger.info(`🤖 Süpperajan API ready on :${env.PORT}`, {
+    port: env.PORT,
+    env: env.NODE_ENV,
+    wsNamespace: '/realtime',
+  });
 }
 
 bootstrap().catch((err) => {
