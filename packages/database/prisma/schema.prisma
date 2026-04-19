@@ -1,0 +1,425 @@
+// ============================================================
+// Supperajan Platform — Prisma Schema
+// PostgreSQL + pgvector
+// ============================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DATABASE_DIRECT_URL")
+  extensions = [pgvector(map: "vector", schema: "extensions"), uuid_ossp(map: "uuid-ossp", schema: "extensions")]
+}
+
+// ─── Users ──────────────────────────────────────────────────────────────────
+
+model User {
+  id          String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  email       String    @unique
+  displayName String    @map("display_name")
+  avatarUrl   String?   @map("avatar_url")
+  role        UserRole  @default(USER)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  profile          UserProfile?
+  chatSessions     ChatSession[]
+  memories         Memory[]
+  memoryEvents     MemoryEvent[]
+  documents        Document[]
+  uploadedFiles    UploadedFile[]
+  feedbackEvents   FeedbackEvent[]
+  processingJobs   ProcessingJob[]
+
+  @@index([email])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  DEVELOPER
+
+  @@map("user_role")
+}
+
+// ─── User Profile ────────────────────────────────────────────────────────────
+
+model UserProfile {
+  id              String   @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  userId          String   @unique @map("user_id") @db.Uuid
+  preferredName   String?  @map("preferred_name")
+  timezone        String   @default("UTC")
+  locale          String   @default("en")
+  assistantMode   String   @default("friendly") @map("assistant_mode")
+  voiceEnabled    Boolean  @default(true) @map("voice_enabled")
+  memoryEnabled   Boolean  @default(true) @map("memory_enabled")
+  avatarSettings  Json     @default("{}") @map("avatar_settings")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+// ─── Chat Sessions ────────────────────────────────────────────────────────────
+
+model ChatSession {
+  id            String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  title         String?
+  assistantMode String    @default("friendly") @map("assistant_mode")
+  messageCount  Int       @default(0) @map("message_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  endedAt       DateTime? @map("ended_at")
+
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages         ChatMessage[]
+  conversationEvents ConversationEvent[]
+  stateSnapshots   AssistantStateSnapshot[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, endedAt])
+  @@map("chat_sessions")
+}
+
+// ─── Chat Messages ────────────────────────────────────────────────────────────
+
+model ChatMessage {
+  id            String        @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  sessionId     String        @map("session_id") @db.Uuid
+  role          MessageRole
+  content       String
+  status        MessageStatus @default(COMPLETED)
+  emotionState  String?       @map("emotion_state")
+  tokensUsed    Int?          @map("tokens_used")
+  latencyMs     Int?          @map("latency_ms")
+  modelId       String?       @map("model_id")
+  metadata      Json          @default("{}")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  session        ChatSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  feedbackEvents FeedbackEvent[]
+  toolEvents     ToolEvent[]
+  retrievalLogs  RetrievalLog[]
+
+  @@index([sessionId, createdAt(sort: Asc)])
+  @@map("chat_messages")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+
+  @@map("message_role")
+}
+
+enum MessageStatus {
+  PENDING
+  STREAMING
+  COMPLETED
+  FAILED
+  INTERRUPTED
+
+  @@map("message_status")
+}
+
+// ─── Conversation Events ──────────────────────────────────────────────────────
+
+model ConversationEvent {
+  id        String   @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  sessionId String   @map("session_id") @db.Uuid
+  eventType String   @map("event_type")
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, eventType, createdAt(sort: Desc)])
+  @@map("conversation_events")
+}
+
+// ─── Memories ─────────────────────────────────────────────────────────────────
+
+model Memory {
+  id              String         @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  userId          String         @map("user_id") @db.Uuid
+  type            MemoryType
+  content         String
+  summary         String?
+  importance      Float          @default(0.5)
+  confidence      Float          @default(0.8)
+  visibility      MemoryVisibility @default(PERMANENT)
+  status          MemoryStatus   @default(ACTIVE)
+  sourceSessionId String?        @map("source_session_id") @db.Uuid
+  sourceMessageId String?        @map("source_message_id") @db.Uuid
+  tags            String[]       @default([])
+  metadata        Json           @default("{}")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  expiresAt       DateTime?      @map("expires_at")
+  lastAccessedAt  DateTime?      @map("last_accessed_at")
+  accessCount     Int            @default(0) @map("access_count")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memoryEvents MemoryEvent[]
+
+  @@index([userId, status, importance(sort: Desc)])
+  @@index([userId, type, status])
+  @@index([userId, tags])
+  @@map("memories")
+}
+
+enum MemoryType {
+  EPISODIC
+  SEMANTIC
+  PREFERENCE
+  FACT
+  INSTRUCTION
+  RELATIONSHIP
+
+  @@map("memory_type")
+}
+
+enum MemoryVisibility {
+  PRIVATE
+  SESSION
+  PERMANENT
+
+  @@map("memory_visibility")
+}
+
+enum MemoryStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+  PENDING_REVIEW
+
+  @@map("memory_status")
+}
+
+// ─── Memory Events (audit trail) ─────────────────────────────────────────────
+
+model MemoryEvent {
+  id            String   @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  memoryId      String   @map("memory_id") @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  operation     String
+  sessionId     String?  @map("session_id") @db.Uuid
+  reason        String
+  previousValue String?  @map("previous_value")
+  newValue      String?  @map("new_value")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  memory Memory @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([memoryId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("memory_events")
+}
+
+// ─── Documents ────────────────────────────────────────────────────────────────
+
+model Document {
+  id               String         @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  userId           String         @map("user_id") @db.Uuid
+  fileName         String         @map("file_name")
+  originalFileName String         @map("original_file_name")
+  fileSize         Int            @map("file_size")
+  mimeType         String         @map("mime_type")
+  documentType     String         @map("document_type")
+  status           DocumentStatus @default(UPLOADING)
+  title            String?
+  description      String?
+  chunkCount       Int            @default(0) @map("chunk_count")
+  storageKey       String         @map("storage_key")
+  processingError  String?        @map("processing_error")
+  docMetadata      Json           @default("{}") @map("metadata")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  deletedAt        DateTime?      @map("deleted_at")
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chunks          DocumentChunk[]
+  processingJobs  ProcessingJob[]
+  retrievalLogs   RetrievalLog[]
+
+  @@index([userId, status])
+  @@index([userId, deletedAt])
+  @@map("documents")
+}
+
+enum DocumentStatus {
+  UPLOADING
+  PROCESSING
+  INGESTING
+  READY
+  FAILED
+  DELETED
+
+  @@map("document_status")
+}
+
+// ─── Document Chunks (with vector embeddings) ─────────────────────────────────
+
+model DocumentChunk {
+  id           String                  @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  documentId   String                  @map("document_id") @db.Uuid
+  userId       String                  @map("user_id") @db.Uuid
+  content      String
+  chunkIndex   Int                     @map("chunk_index")
+  tokenCount   Int                     @map("token_count")
+  // NOTE: The actual embedding column uses pgvector type.
+  // Prisma does not natively support vector columns yet.
+  // We manage this column via raw SQL migration.
+  // embedding  Unsupported("vector(1536)")?
+  chunkMetadata Json                   @default("{}") @map("metadata")
+  createdAt    DateTime                @default(now()) @map("created_at")
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, chunkIndex])
+  @@index([documentId])
+  @@index([userId])
+  @@map("document_chunks")
+}
+
+// ─── Uploaded Files ───────────────────────────────────────────────────────────
+
+model UploadedFile {
+  id           String   @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  storageKey   String   @unique @map("storage_key")
+  fileName     String   @map("file_name")
+  fileSize     Int      @map("file_size")
+  mimeType     String   @map("mime_type")
+  storageProvider String @default("local") @map("storage_provider")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("uploaded_files")
+}
+
+// ─── Processing Jobs ──────────────────────────────────────────────────────────
+
+model ProcessingJob {
+  id               String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  documentId       String    @map("document_id") @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  status           JobStatus @default(QUEUED)
+  progress         Float     @default(0)
+  chunksProcessed  Int       @default(0) @map("chunks_processed")
+  totalChunks      Int?      @map("total_chunks")
+  error            String?
+  startedAt        DateTime? @map("started_at")
+  completedAt      DateTime? @map("completed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([status, createdAt(sort: Asc)])
+  @@map("processing_jobs")
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+
+  @@map("job_status")
+}
+
+// ─── Retrieval Logs ───────────────────────────────────────────────────────────
+
+model RetrievalLog {
+  id           String   @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  sessionId    String?  @map("session_id") @db.Uuid
+  messageId    String?  @map("message_id") @db.Uuid
+  documentId   String?  @map("document_id") @db.Uuid
+  queryText    String   @map("query_text")
+  resultsCount Int      @map("results_count")
+  topScore     Float    @map("top_score")
+  latencyMs    Int      @map("latency_ms")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  message  ChatMessage? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  document Document?    @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, createdAt(sort: Desc)])
+  @@map("retrieval_logs")
+}
+
+// ─── Feedback Events ──────────────────────────────────────────────────────────
+
+model FeedbackEvent {
+  id          String   @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  sessionId   String?  @map("session_id") @db.Uuid
+  messageId   String   @map("message_id") @db.Uuid
+  rating      Int
+  correction  String?
+  tags        String[] @default([])
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([messageId])
+  @@map("feedback_events")
+}
+
+// ─── Tool Events ──────────────────────────────────────────────────────────────
+
+model ToolEvent {
+  id         String   @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  sessionId  String?  @map("session_id") @db.Uuid
+  messageId  String   @map("message_id") @db.Uuid
+  toolName   String   @map("tool_name")
+  status     String
+  input      Json     @default("{}")
+  output     Json?
+  durationMs Int?     @map("duration_ms")
+  error      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([toolName, createdAt(sort: Desc)])
+  @@map("tool_events")
+}
+
+// ─── Assistant State Snapshots ────────────────────────────────────────────────
+
+model AssistantStateSnapshot {
+  id             String   @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  sessionId      String   @map("session_id") @db.Uuid
+  animationState String   @map("animation_state")
+  emotionState   String   @map("emotion_state")
+  assistantMode  String   @map("assistant_mode")
+  payload        Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt(sort: Desc)])
+  @@map("assistant_state_snapshots")
+}

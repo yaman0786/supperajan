@@ -1,8 +1,60 @@
-# OSX
+# ===== OS =====
 .DS_Store
+Thumbs.db
 
-# Xcode
+# ===== Node =====
+node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+.pnpm-store/
+
+# ===== Build outputs =====
+dist/
 build/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# ===== Environment =====
+.env
+.env.local
+.env.*.local
+
+# ===== Test / Coverage =====
+coverage/
+.nyc_output/
+
+# ===== Cache =====
+.cache/
+.eslintcache
+.prettiercache
+
+# ===== Database =====
+*.db
+*.sqlite
+prisma/migrations/dev/
+
+# ===== Uploads (local dev) =====
+uploads/
+*.jsbundle
+
+# ===== IDE =====
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ===== React Native / Mobile =====
+/ios/Pods/
+/android/.gradle/
+/android/app/build/
+/android/build/
+/macos/build/
+/macos/Pods/
+DerivedData/
+*.xcuserstate
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -12,18 +64,15 @@ build/
 *.perspectivev3
 !default.perspectivev3
 xcuserdata
-*.xccheckout
-*.moved-aside
-DerivedData
+.metro-health-check*
+
+# ===== Xcode =====
 *.hmap
 *.ipa
-*.xcuserstate
+*.moved-aside
 ios/.xcode.env.local
 
-# Android/IntelliJ
-build/
-.idea
-.gradle
+# ===== Android =====
 local.properties
 *.iml
 *.hprof
@@ -31,39 +80,9 @@ local.properties
 *.keystore
 !debug.keystore
 
-# node.js
-node_modules/
-npm-debug.log
-yarn-error.log
+# ===== Logs =====
+logs/
+*.log
 
-# fastlane
-**/fastlane/report.xml
-**/fastlane/Preview.html
-**/fastlane/screenshots
-**/fastlane/test_output
-
-# Bundle artifact
-*.jsbundle
-
-# Ruby / CocoaPods
-/ios/Pods/
-/vendor/bundle/
-
-# Temporary files created by Metro to check the health of the file watcher
-.metro-health-check*
-
-# testing
-/coverage
-
-# Misc
-.env
-.env.local
-
-# Web build
-web-build/
-dist/
-.cache/
-
-# macOS specific
-/macos/build/
-/macos/Pods/
+# ===== Generated =====
+src/generated/

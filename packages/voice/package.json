@@ -1,0 +1,24 @@
+{
+  "name": "@supperajan/voice",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voice subsystem: microphone capture, STT/TTS abstractions, VAD, audio state",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./providers": "./src/providers/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@supperajan/types": "workspace:*",
+    "@supperajan/ai": "workspace:*"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5",
+    "typescript": "^5.4.0"
+  }
+}
