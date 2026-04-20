@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { HealthModule } from './health/health.module.js';
 import { CommonModule } from './common/common.module.js';
 import { DatabaseModule } from './database/database.module.js';
@@ -14,6 +14,7 @@ import { EmotionModule } from './emotion/emotion.module.js';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter.js';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor.js';
 import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor.js';
+import { RateLimitGuard } from './common/guards/rate-limit.guard.js';
 
 /**
  * Root application module.
@@ -35,9 +36,10 @@ import { RequestIdInterceptor } from './common/interceptors/request-id.intercept
     RealtimeModule,
   ],
   providers: [
-    { provide: APP_FILTER,      useClass: AllExceptionsFilter },
-    { provide: APP_INTERCEPTOR, useClass: RequestIdInterceptor },
-    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    { provide: APP_FILTER,       useClass: AllExceptionsFilter },
+    { provide: APP_GUARD,        useClass: RateLimitGuard },
+    { provide: APP_INTERCEPTOR,  useClass: RequestIdInterceptor },
+    { provide: APP_INTERCEPTOR,  useClass: LoggingInterceptor },
   ],
 })
 export class AppModule {}

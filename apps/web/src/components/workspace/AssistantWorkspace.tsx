@@ -9,6 +9,7 @@ import { ConnectionBanner } from '@/components/ui/ConnectionBanner';
 import { Toaster } from '@/components/ui/Toast';
 import { SidePanel } from '@/components/workspace/SidePanel';
 import { RealtimeProvider } from '@/components/workspace/RealtimeProvider';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { useAssistantStore } from '@/store/assistant.store';
 
 export function AssistantWorkspace() {
@@ -60,7 +61,9 @@ export function AssistantWorkspace() {
 
           {/* 3D Avatar */}
           <div className="flex h-full w-full flex-1 items-center justify-center">
-            <AvatarStage />
+            <ErrorBoundary>
+              <AvatarStage />
+            </ErrorBoundary>
           </div>
 
           {/* Control bar */}

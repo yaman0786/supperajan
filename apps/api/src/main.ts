@@ -48,12 +48,24 @@ async function bootstrap() {
     exclude: ['health', 'health/live', 'health/ready'],
   });
 
+  // ── Graceful shutdown ────────────────────────────────────────────────────
+  app.enableShutdownHooks();
+
   await app.listen(env.PORT, '0.0.0.0');
   logger.info(`🤖 Süpperajan API ready on :${env.PORT}`, {
     port: env.PORT,
     env: env.NODE_ENV,
     wsNamespace: '/realtime',
   });
+
+  const signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT'];
+  for (const signal of signals) {
+    process.on(signal, async () => {
+      logger.info(`Received ${signal}, shutting down gracefully...`);
+      await app.close();
+      process.exit(0);
+    });
+  }
 }
 
 bootstrap().catch((err) => {

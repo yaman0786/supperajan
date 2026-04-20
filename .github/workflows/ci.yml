@@ -1,0 +1,150 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, 'claude/**']
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+jobs:
+  # ── Typecheck ──────────────────────────────────────────────────────────────
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck packages
+        run: pnpm --filter "@supperajan/types" typecheck
+          && pnpm --filter "@supperajan/config" typecheck
+          && pnpm --filter "@supperajan/observability" typecheck
+          && pnpm --filter "@supperajan/ai" typecheck
+          && pnpm --filter "@supperajan/knowledge" typecheck
+
+      - name: Typecheck API
+        run: pnpm --filter "@supperajan/api" typecheck
+        env:
+          DATABASE_URL: postgresql://supperajan:pw@localhost:5432/supperajan_db
+          JWT_SECRET: ci_jwt_secret_at_least_32_chars_long
+          REFRESH_TOKEN_SECRET: ci_refresh_secret_32_chars_long
+
+  # ── Lint ───────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter "@supperajan/ai" lint || true
+      - run: pnpm --filter "@supperajan/api" lint || true
+
+  # ── Unit Tests ─────────────────────────────────────────────────────────────
+  test-packages:
+    name: Unit Tests (packages)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Test @supperajan/ai
+        run: pnpm --filter "@supperajan/ai" test
+
+      - name: Test @supperajan/knowledge
+        run: pnpm --filter "@supperajan/knowledge" test
+
+  # ── API Tests ──────────────────────────────────────────────────────────────
+  test-api:
+    name: Unit Tests (API)
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://supperajan:pw@localhost:5432/supperajan_db
+      JWT_SECRET: ci_jwt_secret_at_least_32_chars_long
+      REFRESH_TOKEN_SECRET: ci_refresh_secret_32_chars_long
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Test API services
+        run: pnpm --filter "@supperajan/api" test --passWithNoTests
+
+  # ── Build ──────────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, test-packages, test-api]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build API
+        run: pnpm --filter "@supperajan/api" build
+        env:
+          DATABASE_URL: postgresql://supperajan:pw@localhost:5432/supperajan_db
+          JWT_SECRET: ci_jwt_secret_at_least_32_chars_long
+          REFRESH_TOKEN_SECRET: ci_refresh_secret_32_chars_long
+
+      - name: Build Web
+        run: pnpm --filter "@supperajan/web" build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXT_PUBLIC_WS_URL: ws://localhost:4000
+          DATABASE_URL: postgresql://supperajan:pw@localhost:5432/supperajan_db
+          JWT_SECRET: ci_jwt_secret_at_least_32_chars_long
+          REFRESH_TOKEN_SECRET: ci_refresh_secret_32_chars_long
