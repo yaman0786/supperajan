@@ -72,7 +72,7 @@ describe('ConversationService', () => {
         sessionId: 's1',
         messageId: 'm1',
         content: 'Hello!',
-        assistantMode: 'ASSISTANT',
+        assistantMode: 'friendly' as const,
         emit,
       });
 
@@ -91,7 +91,7 @@ describe('ConversationService', () => {
         sessionId: 's1',
         messageId: 'm1',
         content: 'Hello!',
-        assistantMode: 'ASSISTANT',
+        assistantMode: 'friendly' as const,
         emit,
       });
 
@@ -111,7 +111,7 @@ describe('ConversationService', () => {
         sessionId: 's1',
         messageId: 'm1',
         content: 'ping',
-        assistantMode: 'ASSISTANT',
+        assistantMode: 'friendly' as const,
         emit,
       });
 
@@ -135,7 +135,7 @@ describe('ConversationService', () => {
         sessionId: 's1',
         messageId: 'm1',
         content: 'hi',
-        assistantMode: 'ASSISTANT',
+        assistantMode: 'friendly' as const,
         emit,
         abortSignal: controller.signal,
       });
@@ -157,7 +157,7 @@ describe('ConversationService', () => {
         sessionId: 's1',
         messageId: 'm1',
         content: 'hi',
-        assistantMode: 'ASSISTANT',
+        assistantMode: 'friendly' as const,
         emit,
       });
 

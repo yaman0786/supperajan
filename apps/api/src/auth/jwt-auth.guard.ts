@@ -3,6 +3,7 @@ import {
   CanActivate,
   type ExecutionContext,
   UnauthorizedException,
+  SetMetadata,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { FastifyRequest } from 'fastify';
@@ -51,14 +52,5 @@ export class JwtAuthGuard implements CanActivate {
 }
 
 /** Marks a route as publicly accessible — no auth required. */
-export function Public(): MethodDecorator & ClassDecorator {
-  return (target: object, key?: string | symbol, descriptor?: PropertyDescriptor) => {
-    const ref = Reflector.createDecorator<boolean>();
-    if (descriptor) {
-      Reflect.defineMetadata(IS_PUBLIC_KEY, true, descriptor.value as object);
-      return descriptor;
-    }
-    Reflect.defineMetadata(IS_PUBLIC_KEY, true, target);
-    return target as ClassDecorator extends (...args: never[]) => infer R ? R : never;
-  };
-}
+/** Marks a route as publicly accessible — no auth required. */
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);

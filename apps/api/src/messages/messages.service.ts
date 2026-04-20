@@ -137,7 +137,7 @@ export class MessagesService {
       content: row.content,
       status: row.status.toLowerCase() as ChatMessage['status'],
       metadata: {
-        emotionState: (row.emotionState ?? undefined) as ChatMessage['metadata'] extends infer M ? M extends object ? M['emotionState'] : never : never,
+        emotionState: (row.emotionState ?? undefined) as import('@supperajan/types').EmotionState | undefined,
         tokensUsed: row.tokensUsed ?? undefined,
         latencyMs: row.latencyMs ?? undefined,
         modelId: row.modelId ?? undefined,

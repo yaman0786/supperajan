@@ -77,7 +77,7 @@ export class IngestionService {
               content: c.content,
               chunkIndex: i,
               tokenCount: c.tokenCount,
-              chunkMetadata: { ...c.metadata },
+              chunkMetadata: c.metadata as never,
             },
           }),
         ),

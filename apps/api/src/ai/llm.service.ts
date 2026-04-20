@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import type { ILLMProvider, LLMMessage, LLMGenerationOptions, LLMStreamChunk } from '@supperajan/ai/providers';
-import { buildPrompt, inferEmotion } from '@supperajan/ai/orchestration';
-import type { EmotionState, AssistantMode, LLMResponse, LLMUsage } from '@supperajan/types';
+import type { ILLMProvider } from '@supperajan/ai';
+import { buildPrompt, inferEmotion } from '@supperajan/ai';
+import type { EmotionState, AssistantMode, LLMResponse, LLMUsage, LLMMessage, LLMGenerationOptions, LLMStreamChunk } from '@supperajan/types';
 import { OpenAIProvider } from './openai.provider.js';
 import { LoggerService } from '../common/logger.service.js';
 import { MetricsService } from '../common/metrics.service.js';

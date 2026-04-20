@@ -15,7 +15,7 @@ import { CurrentUser } from '../auth/current-user.decorator.js';
 import { DocumentsService } from './documents.service.js';
 import { IngestionService } from './ingestion.service.js';
 import { UploadDocumentDto } from './dto/upload-document.dto.js';
-import type { AuthUser } from '../auth/current-user.decorator.js';
+import type { AuthenticatedUser as AuthUser } from '../auth/current-user.decorator.js';
 import type { ApiResponse, Document } from '@supperajan/types';
 
 @Controller('api/v1/documents')

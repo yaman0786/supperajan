@@ -1,11 +1,11 @@
+import type { ILLMProvider } from '@supperajan/ai';
 import type {
-  ILLMProvider,
   LLMMessage,
   LLMGenerationOptions,
   LLMResponse,
   LLMStreamChunk,
   EmbeddingResult,
-} from '@supperajan/ai/providers';
+} from '@supperajan/types';
 
 /**
  * OpenAI LLM provider implementation.

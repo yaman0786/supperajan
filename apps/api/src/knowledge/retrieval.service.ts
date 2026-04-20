@@ -59,7 +59,6 @@ export class RetrievalService {
         this.db.retrievalLog.create({
           data: {
             sessionId: opts.sessionId,
-            userId,
             queryText: queryText.slice(0, 500),
             resultsCount: results.length,
             topScore: results[0]?.score ?? 0,

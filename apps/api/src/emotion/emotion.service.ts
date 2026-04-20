@@ -39,10 +39,10 @@ export class EmotionService {
       await this.db.assistantStateSnapshot.create({
         data: {
           sessionId: snapshot.sessionId,
-          messageId: snapshot.messageId,
-          animationState: snapshot.emotionState.toUpperCase() as never,
+          animationState: snapshot.emotionState.toUpperCase(),
           emotionState: snapshot.emotionState,
-          trigger: snapshot.trigger,
+          assistantMode: 'friendly',
+          payload: { messageId: snapshot.messageId, trigger: snapshot.trigger },
         },
       });
     } catch (err) {
