@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { ChatMessage } from '@supperajan/types';
+import type { ChatMessage, EmotionState } from '@supperajan/types';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -21,8 +21,11 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     <div className={`group flex animate-slide-up gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {/* Avatar orb — assistant only */}
       {!isUser && (
-        <div className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-500/20">
+        <div className="relative mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-500/20">
           <span className="text-[11px] font-bold text-brand-400">S</span>
+          {message.metadata?.emotionState && (
+            <EmotionDot emotion={message.metadata.emotionState as EmotionState} />
+          )}
         </div>
       )}
 
@@ -76,6 +79,26 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+const EMOTION_DOT_COLORS: Partial<Record<EmotionState, string>> = {
+  happy:      'bg-green-400',
+  excited:    'bg-brand-400',
+  empathetic: 'bg-purple-400',
+  curious:    'bg-accent-400',
+  alert:      'bg-yellow-400',
+  surprised:  'bg-yellow-300',
+};
+
+function EmotionDot({ emotion }: { emotion: EmotionState }) {
+  const color = EMOTION_DOT_COLORS[emotion];
+  if (!color) return null;
+  return (
+    <span
+      className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-bg-surface ${color}`}
+      title={emotion}
+    />
   );
 }
 

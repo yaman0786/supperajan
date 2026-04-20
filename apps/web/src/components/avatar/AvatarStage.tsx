@@ -4,7 +4,9 @@ import { Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Stars } from '@react-three/drei';
 import { RobotAvatar } from './RobotAvatar';
+import { EmotionAmbient } from './EmotionAmbient';
 import { useAssistantStore } from '@/store/assistant.store';
+import { useEmotionReactions } from '@/hooks/useEmotionReactions';
 
 /**
  * 3D scene container for the robot avatar.
@@ -17,9 +19,11 @@ export function AvatarStage() {
   const avatarState = useAssistantStore((s) => s.avatarState);
   const emotionState = useAssistantStore((s) => s.emotionState);
   const audioLevel = useAssistantStore((s) => s.audioLevel);
+  const { activeReaction } = useEmotionReactions();
 
   return (
     <div className="relative h-full w-full" aria-label="3D avatar stage">
+      <EmotionAmbient emotionState={emotionState} activeReaction={activeReaction} />
       <Canvas
         camera={{ position: [0, 0.2, 4], fov: 40, near: 0.1, far: 100 }}
         dpr={[1, 2]}

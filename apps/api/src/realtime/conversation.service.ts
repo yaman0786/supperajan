@@ -6,6 +6,7 @@ import { AuthService } from '../auth/auth.service.js';
 import { LoggerService } from '../common/logger.service.js';
 import { MetricsService } from '../common/metrics.service.js';
 import { RetrievalService } from '../knowledge/retrieval.service.js';
+import { EmotionService } from '../emotion/emotion.service.js';
 import { METRICS } from '@supperajan/observability';
 import type { LLMStreamChunk } from '@supperajan/types';
 import type {
@@ -54,6 +55,7 @@ export class ConversationService {
     private readonly logger: LoggerService,
     private readonly metrics: MetricsService,
     @Optional() private readonly retrieval: RetrievalService | null,
+    @Optional() private readonly emotionSvc: EmotionService | null,
   ) {}
 
   async handleMessage(input: HandleMessageInput): Promise<void> {
@@ -166,7 +168,16 @@ export class ConversationService {
         modelId: result.modelId,
       });
 
-      // 7. Emit completion + state
+      // 7. Persist emotion snapshot (fire-and-forget)
+      this.emotionSvc?.snapshotEmotion({
+        sessionId,
+        messageId: assistantMessageId,
+        emotionState: result.emotionState,
+        trigger: `user:${content.slice(0, 60)}`,
+        timestamp: new Date(),
+      });
+
+      // 8. Emit completion + state
       const latencyMs = Date.now() - start;
 
       const completed: AssistantResponseCompletedEvent = {
