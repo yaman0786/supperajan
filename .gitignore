@@ -86,3 +86,9 @@ logs/
 
 # ===== Generated =====
 src/generated/
+
+# ===== Package compiled outputs (in-place tsc artifacts) =====
+packages/*/src/**/*.js
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.d.ts.map
