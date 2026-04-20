@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { SessionsService } from '../sessions/sessions.service.js';
 import { MessagesService } from '../messages/messages.service.js';
 import { LLMService } from '../ai/llm.service.js';
 import { AuthService } from '../auth/auth.service.js';
 import { LoggerService } from '../common/logger.service.js';
 import { MetricsService } from '../common/metrics.service.js';
+import { RetrievalService } from '../knowledge/retrieval.service.js';
 import { METRICS } from '@supperajan/observability';
 import type { LLMStreamChunk } from '@supperajan/types';
 import type {
@@ -52,6 +53,7 @@ export class ConversationService {
     private readonly auth: AuthService,
     private readonly logger: LoggerService,
     private readonly metrics: MetricsService,
+    @Optional() private readonly retrieval: RetrievalService | null,
   ) {}
 
   async handleMessage(input: HandleMessageInput): Promise<void> {
@@ -84,8 +86,29 @@ export class ConversationService {
       };
       emit(stateThinking);
 
-      // 4. Fetch conversation history
+      // 4. Fetch conversation history + retrieve relevant context
       const recentHistory = await this.messages.getRecentHistory(sessionId, 20);
+
+      let retrievedContext: string | undefined;
+      if (this.retrieval) {
+        const hasKnowledge = await this.retrieval.hasReadyDocuments(userId);
+        if (hasKnowledge) {
+          const results = await this.retrieval.retrieve(userId, content, { sessionId, topK: 4 });
+          if (results.length > 0) {
+            retrievedContext = this.retrieval.formatForPrompt(results);
+
+            const retrievalEvent: import('@supperajan/types').RetrievalEventPayload = {
+              type: 'retrieval.event',
+              sessionId,
+              queryText: content.slice(0, 100),
+              resultsCount: results.length,
+              topScore: results[0]?.score ?? 0,
+              timestamp: Date.now(),
+            };
+            emit(retrievalEvent);
+          }
+        }
+      }
 
       // 5. Generate response (streaming)
       const assistantMessageId = crypto.randomUUID();
@@ -117,6 +140,7 @@ export class ConversationService {
         userMessage: content,
         assistantMode,
         recentHistory,
+        retrievedContext,
         abortSignal,
         onChunk: (chunk: LLMStreamChunk) => {
           fullContent += chunk.delta;

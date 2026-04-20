@@ -9,6 +9,7 @@ import { SessionsModule } from './sessions/sessions.module.js';
 import { MessagesModule } from './messages/messages.module.js';
 import { AiModule } from './ai/ai.module.js';
 import { RealtimeModule } from './realtime/realtime.module.js';
+import { KnowledgeModule } from './knowledge/knowledge.module.js';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter.js';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor.js';
 import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor.js';
@@ -28,6 +29,7 @@ import { RequestIdInterceptor } from './common/interceptors/request-id.intercept
     SessionsModule,
     MessagesModule,
     AiModule,
+    KnowledgeModule,
     RealtimeModule,
   ],
   providers: [

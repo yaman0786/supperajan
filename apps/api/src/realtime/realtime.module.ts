@@ -6,9 +6,10 @@ import { SessionsModule } from '../sessions/sessions.module.js';
 import { MessagesModule } from '../messages/messages.module.js';
 import { AiModule } from '../ai/ai.module.js';
 import { AuthModule } from '../auth/auth.module.js';
+import { KnowledgeModule } from '../knowledge/knowledge.module.js';
 
 @Module({
-  imports: [SessionsModule, MessagesModule, AiModule, AuthModule],
+  imports: [SessionsModule, MessagesModule, AiModule, AuthModule, KnowledgeModule],
   providers: [RealtimeGateway, SessionManagerService, ConversationService],
   exports: [RealtimeGateway, SessionManagerService],
 })

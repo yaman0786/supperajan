@@ -1,4 +1,4 @@
-import type { ApiResponse, ChatSession, ChatMessage } from '@supperajan/types';
+import type { ApiResponse, ChatSession, ChatMessage, Document } from '@supperajan/types';
 
 const API_BASE = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4000';
 
@@ -40,5 +40,31 @@ export const apiClient = {
   messages: {
     list: (sessionId: string) =>
       request<ChatMessage[]>(`/sessions/${sessionId}/messages`),
+  },
+
+  documents: {
+    list: () => request<Document[]>('/documents'),
+
+    upload: (body: {
+      fileName: string;
+      mimeType: string;
+      fileSize: number;
+      content: string;
+      encoding: 'utf8' | 'base64';
+      title?: string;
+    }) =>
+      request<Document>('/documents', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+
+    get: (id: string) => request<Document>(`/documents/${id}`),
+
+    delete: (id: string) =>
+      fetch(`${API_BASE}/api/v1/documents/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'X-Request-ID': crypto.randomUUID() },
+      }),
   },
 };

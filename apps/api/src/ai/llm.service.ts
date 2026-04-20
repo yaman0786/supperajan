@@ -108,6 +108,10 @@ export class LLMService implements OnModuleInit {
     };
   }
 
+  async embed(text: string): Promise<import('@supperajan/types').EmbeddingResult> {
+    return this.provider.embed(text);
+  }
+
   async healthCheck(): Promise<boolean> {
     return this.provider.healthCheck();
   }
