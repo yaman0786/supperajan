@@ -1,39 +1,35 @@
 'use client';
 
 import type { AssistantMode } from '@supperajan/types';
-import { ASSISTANT_MODE_DESCRIPTIONS } from '@supperajan/config';
 
 interface ModeSelectorProps {
   value: AssistantMode;
   onChange: (mode: AssistantMode) => void;
 }
 
-const MODES: { value: AssistantMode; label: string; icon: string }[] = [
-  { value: 'friendly', label: 'Friendly', icon: '😊' },
-  { value: 'professional', label: 'Professional', icon: '💼' },
-  { value: 'playful', label: 'Playful', icon: '✨' },
-  { value: 'concise', label: 'Concise', icon: '⚡' },
-  { value: 'deep_research', label: 'Research', icon: '🔬' },
-  { value: 'companion', label: 'Companion', icon: '🤝' },
-  { value: 'productivity', label: 'Productive', icon: '📋' },
-  { value: 'emotional_support', label: 'Support', icon: '💛' },
+const MODES: { value: AssistantMode; label: string }[] = [
+  { value: 'friendly', label: '😊 Dostane' },
+  { value: 'professional', label: '💼 Profesyonel' },
+  { value: 'playful', label: '✨ Eğlenceli' },
+  { value: 'concise', label: '⚡ Özlü' },
+  { value: 'deep_research', label: '🔬 Araştırmacı' },
+  { value: 'companion', label: '🤝 Arkadaş' },
+  { value: 'productivity', label: '📋 Verimli' },
+  { value: 'emotional_support', label: '💛 Destekleyici' },
 ];
 
 export function ModeSelector({ value, onChange }: ModeSelectorProps) {
-  const current = MODES.find((m) => m.value === value);
-
   return (
     <div className="relative">
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as AssistantMode)}
-        aria-label="Assistant mode"
-        title={ASSISTANT_MODE_DESCRIPTIONS[value]}
-        className="appearance-none cursor-pointer rounded-lg border border-bg-border bg-bg-elevated py-1.5 pl-2.5 pr-6 text-xs font-medium text-neutral-300 transition-colors hover:border-accent-700 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500/30"
+        aria-label="Asistan modu"
+        className="appearance-none cursor-pointer rounded-lg border border-bg-border bg-bg-elevated py-1.5 pl-2.5 pr-6 text-xs font-medium text-neutral-300 transition-colors hover:border-neutral-600 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500/30"
       >
         {MODES.map((mode) => (
           <option key={mode.value} value={mode.value}>
-            {mode.icon} {mode.label}
+            {mode.label}
           </option>
         ))}
       </select>

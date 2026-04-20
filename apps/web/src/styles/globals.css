@@ -33,26 +33,23 @@
     overflow-x: hidden;
   }
 
-  /* Scrollbar styling for dark theme */
+  /* Scrollbar styling */
   ::-webkit-scrollbar {
     width: 4px;
     height: 4px;
   }
-
   ::-webkit-scrollbar-track {
     background: var(--bg-surface);
   }
-
   ::-webkit-scrollbar-thumb {
     background: var(--border);
     border-radius: 9999px;
   }
-
   ::-webkit-scrollbar-thumb:hover {
     background: #2E3A50;
   }
 
-  /* Focus ring — accessible, on-brand */
+  /* Focus ring */
   *:focus-visible {
     outline: 2px solid var(--accent-primary);
     outline-offset: 2px;
@@ -62,6 +59,28 @@
   /* Remove tap highlight on mobile */
   * {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Selection color */
+  ::selection {
+    background: rgba(0, 174, 222, 0.25);
+    color: #E8F8FF;
+  }
+}
+
+@layer components {
+  .glass {
+    background: rgba(22, 28, 40, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(37, 46, 64, 0.6);
+  }
+
+  .glass-elevated {
+    background: rgba(30, 38, 54, 0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(46, 58, 80, 0.7);
   }
 }
 
@@ -88,17 +107,12 @@
     box-shadow: 0 0 20px rgba(232, 97, 26, 0.4);
   }
 
-  .glass {
-    background: rgba(22, 28, 40, 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(37, 46, 64, 0.6);
+  /* Safe area padding for mobile notch/home bar */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .glass-elevated {
-    background: rgba(30, 38, 54, 0.9);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(46, 58, 80, 0.7);
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
   }
 }

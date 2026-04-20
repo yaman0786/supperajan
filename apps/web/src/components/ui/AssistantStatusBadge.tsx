@@ -10,47 +10,47 @@ interface AssistantStatusBadgeProps {
 }
 
 const STATE_LABELS: Record<AvatarAnimationState, string> = {
-  idle: 'Ready',
-  listening: 'Listening...',
-  thinking: 'Thinking...',
-  speaking: 'Speaking',
-  happy: 'Ready',
-  empathetic: 'Ready',
-  excited: 'Ready',
-  surprised: 'Ready',
-  alert: 'Alert',
-  curious: 'Thinking...',
-  sleeping: 'Sleeping',
-  waving: 'Hello!',
+  idle: 'Hazır',
+  listening: 'Dinliyor...',
+  thinking: 'Düşünüyor...',
+  speaking: 'Konuşuyor',
+  happy: 'Mutlu',
+  empathetic: 'Anlayışlı',
+  excited: 'Heyecanlı',
+  surprised: 'Şaşırdı',
+  alert: 'Dikkat',
+  curious: 'Meraklı',
+  sleeping: 'Uyku',
+  waving: 'Merhaba!',
 };
 
 const STATE_COLORS: Record<AvatarAnimationState, string> = {
-  idle: 'bg-neutral-700 text-neutral-300',
-  listening: 'bg-accent-500/20 text-accent-300 border border-accent-500/30',
-  thinking: 'bg-brand-500/20 text-brand-300 border border-brand-500/30',
-  speaking: 'bg-accent-600/20 text-accent-200 border border-accent-500/40',
-  happy: 'bg-status-success/20 text-green-300 border border-green-500/30',
-  empathetic: 'bg-purple-500/20 text-purple-300 border border-purple-500/30',
-  excited: 'bg-brand-500/20 text-brand-300 border border-brand-500/30',
-  surprised: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30',
-  alert: 'bg-status-warning/20 text-yellow-300 border border-yellow-500/30',
-  curious: 'bg-accent-500/20 text-accent-300 border border-accent-500/30',
-  sleeping: 'bg-neutral-800 text-neutral-500',
-  waving: 'bg-status-success/20 text-green-300 border border-green-500/30',
+  idle: 'text-neutral-400',
+  listening: 'text-accent-300',
+  thinking: 'text-brand-300',
+  speaking: 'text-accent-200',
+  happy: 'text-green-300',
+  empathetic: 'text-purple-300',
+  excited: 'text-brand-300',
+  surprised: 'text-yellow-300',
+  alert: 'text-yellow-300',
+  curious: 'text-accent-300',
+  sleeping: 'text-neutral-500',
+  waving: 'text-green-300',
 };
 
 const STATE_DOTS: Record<AvatarAnimationState, string> = {
-  idle: 'bg-neutral-500',
+  idle: 'bg-neutral-600',
   listening: 'bg-accent-400 animate-pulse',
   thinking: 'bg-brand-400 animate-pulse',
-  speaking: 'bg-accent-300 animate-pulse',
+  speaking: 'bg-accent-300 animate-[pulse_0.6s_ease-in-out_infinite]',
   happy: 'bg-green-400',
   empathetic: 'bg-purple-400',
-  excited: 'bg-brand-400',
+  excited: 'bg-brand-400 animate-pulse',
   surprised: 'bg-yellow-400',
   alert: 'bg-yellow-400 animate-ping',
   curious: 'bg-accent-400',
-  sleeping: 'bg-neutral-600',
+  sleeping: 'bg-neutral-700',
   waving: 'bg-green-400',
 };
 
@@ -60,18 +60,18 @@ export function AssistantStatusBadge({
 }: AssistantStatusBadgeProps) {
   if (connectionState === 'disconnected') {
     return (
-      <div className="glass rounded-full px-3 py-1.5 text-xs font-medium text-neutral-500">
-        <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-neutral-600" />
-        Offline
+      <div className="glass rounded-full px-3 py-1.5 text-xs font-medium text-neutral-600">
+        <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-neutral-700" />
+        Çevrimdışı
       </div>
     );
   }
 
   if (connectionState === 'connecting' || connectionState === 'reconnecting') {
     return (
-      <div className="glass rounded-full px-3 py-1.5 text-xs font-medium text-neutral-400">
-        <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-500" />
-        Connecting...
+      <div className="glass rounded-full px-3 py-1.5 text-xs font-medium text-yellow-400/70">
+        <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-500/70" />
+        Bağlanıyor...
       </div>
     );
   }
