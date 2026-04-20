@@ -1,15 +1,19 @@
 import { Global, Module } from '@nestjs/common';
 import { LoggerService } from './logger.service.js';
 import { MetricsService } from './metrics.service.js';
+import { AnalyticsService } from './analytics.service.js';
+import { AnalyticsController } from './analytics.controller.js';
+import { DatabaseModule } from '../database/database.module.js';
 
 /**
  * Global infrastructure module.
- * LoggerService and MetricsService are exported globally so all modules
- * can inject them without re-importing CommonModule.
+ * LoggerService, MetricsService, and AnalyticsService are exported globally.
  */
 @Global()
 @Module({
-  providers: [LoggerService, MetricsService],
-  exports: [LoggerService, MetricsService],
+  imports: [DatabaseModule],
+  controllers: [AnalyticsController],
+  providers: [LoggerService, MetricsService, AnalyticsService],
+  exports: [LoggerService, MetricsService, AnalyticsService],
 })
 export class CommonModule {}

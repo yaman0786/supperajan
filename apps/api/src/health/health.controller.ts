@@ -5,6 +5,7 @@ import {
   MemoryHealthIndicator,
   type HealthCheckResult,
 } from '@nestjs/terminus';
+import { DbHealthIndicator } from './db.health-indicator.js';
 
 /**
  * Health endpoints consumed by load balancers, Kubernetes probes, and uptime monitors.
@@ -18,6 +19,7 @@ export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
     private readonly memory: MemoryHealthIndicator,
+    private readonly db: DbHealthIndicator,
   ) {}
 
   @Get()
@@ -26,6 +28,7 @@ export class HealthController {
     return this.health.check([
       () => this.memory.checkHeap('memory_heap', 512 * 1024 * 1024),
       () => this.memory.checkRSS('memory_rss', 1024 * 1024 * 1024),
+      () => this.db.isHealthy('database'),
     ]);
   }
 
@@ -40,6 +43,7 @@ export class HealthController {
   readiness(): Promise<HealthCheckResult> {
     return this.health.check([
       () => this.memory.checkHeap('memory_heap', 512 * 1024 * 1024),
+      () => this.db.isHealthy('database'),
     ]);
   }
 }

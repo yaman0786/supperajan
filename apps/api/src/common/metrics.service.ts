@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { NoopMetrics, type IMetrics } from '@supperajan/observability';
+import { NoopMetrics, InMemoryMetrics, type IMetrics } from '@supperajan/observability';
 
 /**
  * Thin NestJS wrapper around the IMetrics interface.
- * In production, replace NoopMetrics with a Prometheus or Datadog adapter.
+ * Uses InMemoryMetrics in test/dev so call assertions work in tests.
+ * In production, replace with a Prometheus or Datadog adapter.
  */
 @Injectable()
 export class MetricsService implements IMetrics {
-  private readonly metrics: IMetrics = new NoopMetrics();
+  private readonly metrics: IMetrics =
+    process.env['NODE_ENV'] === 'test' ? new InMemoryMetrics() : new NoopMetrics();
 
   increment(metric: string, tags?: Record<string, string>): void {
     this.metrics.increment(metric, tags);

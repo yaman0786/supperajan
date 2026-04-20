@@ -23,6 +23,11 @@ async function request<T>(
   return json;
 }
 
+export async function apiGet<T>(path: string): Promise<T> {
+  const res = await request<T>(path);
+  return res.data as T;
+}
+
 export const apiClient = {
   sessions: {
     create: (body: { title?: string; assistantMode?: string }) =>
