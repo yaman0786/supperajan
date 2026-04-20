@@ -2,11 +2,13 @@
 
 import { useRef, useEffect } from 'react';
 import { useAssistantStore } from '@/store/assistant.store';
+import { useConversation } from '@/hooks/useConversation';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
 
 export function ConversationPanel() {
-  const { messages, isThinking, partialTranscript, currentSession } = useAssistantStore();
+  const { messages, isThinking, isStreaming, partialTranscript } = useAssistantStore();
+  const { interrupt } = useConversation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -55,15 +57,30 @@ export function ConversationPanel() {
           </div>
         )}
 
-        {/* Thinking indicator */}
-        {isThinking && (
-          <div className="flex items-start gap-2 animate-slide-up">
-            <div className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-500/20">
-              <span className="text-[11px] font-bold text-brand-400">S</span>
+        {/* Thinking / streaming indicator + barge-in */}
+        {(isThinking || isStreaming) && (
+          <div className="flex items-center gap-2 animate-slide-up">
+            <div className="flex items-start gap-2 flex-1">
+              <div className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-500/20">
+                <span className="text-[11px] font-bold text-brand-400">S</span>
+              </div>
+              {isThinking && (
+                <div className="glass rounded-2xl rounded-bl-sm px-4 py-3">
+                  <ThinkingDots />
+                </div>
+              )}
             </div>
-            <div className="glass rounded-2xl rounded-bl-sm px-4 py-3">
-              <ThinkingDots />
-            </div>
+            {/* Barge-in / interrupt button */}
+            <button
+              onClick={interrupt}
+              aria-label="Yanıtı durdur"
+              title="Yanıtı durdur"
+              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-red-800/40 bg-red-950/60 text-red-400 transition-all hover:bg-red-900/60 hover:text-red-300 active:scale-95"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                <rect x="2" y="2" width="8" height="8" rx="1" />
+              </svg>
+            </button>
           </div>
         )}
 

@@ -27,6 +27,7 @@ export interface HandleMessageInput {
   content: string;
   assistantMode: AssistantMode;
   emit: EmitFn;
+  abortSignal?: AbortSignal;
 }
 
 /**
@@ -54,7 +55,7 @@ export class ConversationService {
   ) {}
 
   async handleMessage(input: HandleMessageInput): Promise<void> {
-    const { userId, sessionId, messageId, content, assistantMode, emit } = input;
+    const { userId, sessionId, messageId, content, assistantMode, emit, abortSignal } = input;
     const start = Date.now();
 
     try {
@@ -116,6 +117,7 @@ export class ConversationService {
         userMessage: content,
         assistantMode,
         recentHistory,
+        abortSignal,
         onChunk: (chunk: LLMStreamChunk) => {
           fullContent += chunk.delta;
           const chunkEvent: AssistantResponseChunkEvent = {
@@ -168,6 +170,29 @@ export class ConversationService {
       this.metrics.timing(METRICS.MESSAGE_LATENCY, latencyMs);
       this.logger.info('Conversation turn completed', { userId, sessionId, latencyMs });
     } catch (err) {
+      const isAbort = err instanceof Error && err.name === 'AbortError';
+
+      if (isAbort) {
+        const interrupted: import('@supperajan/types').AssistantInterruptedEvent = {
+          type: 'assistant.interrupted',
+          sessionId,
+          messageId,
+          timestamp: Date.now(),
+        };
+        emit(interrupted);
+
+        const stateIdle: AssistantStateChangedEvent = {
+          type: 'assistant.state_changed',
+          sessionId,
+          previousState: 'speaking',
+          newState: 'idle',
+          emotionState: 'idle',
+          timestamp: Date.now(),
+        };
+        emit(stateIdle);
+        return;
+      }
+
       this.logger.error('Conversation error', err instanceof Error ? err : new Error(String(err)), {
         userId, sessionId,
       });

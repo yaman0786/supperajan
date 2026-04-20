@@ -150,6 +150,7 @@ export class RealtimeGateway
       content: payload.content,
       assistantMode: session.assistantMode as import('@supperajan/types').AssistantMode,
       emit: (event) => this.emit(client, event),
+      abortSignal: controller.signal,
     });
 
     this.activeGenerations.delete(client.id);

@@ -18,11 +18,12 @@ export interface ILLMProvider {
   /** Non-streaming generation */
   generate(messages: LLMMessage[], options?: LLMGenerationOptions): Promise<LLMResponse>;
 
-  /** Streaming generation — yields chunks until done */
+  /** Streaming generation — yields chunks until done or signal aborted */
   generateStream(
     messages: LLMMessage[],
     options?: LLMGenerationOptions,
     onChunk?: (chunk: LLMStreamChunk) => void,
+    abortSignal?: AbortSignal,
   ): AsyncGenerator<LLMStreamChunk>;
 
   /** Generate embeddings for text */

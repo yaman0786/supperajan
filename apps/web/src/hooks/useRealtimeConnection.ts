@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import type { Socket } from 'socket.io-client';
-import type { ServerEvent, ClientEvent, SessionCreatedEvent } from '@supperajan/types';
+import type { ServerEvent, ClientEvent } from '@supperajan/types';
 import { computeReconnectDelay, DEFAULT_RECONNECT_CONFIG } from '@supperajan/realtime';
 import { useAssistantStore } from '@/store/assistant.store';
 
@@ -14,8 +14,8 @@ type EventHandler = (event: ServerEvent) => void;
  * Manages the Socket.IO connection to the realtime gateway.
  *
  * - Auto-connects on mount, auto-reconnects with jitter backoff
- * - Dispatches all incoming server events to the assistant Zustand store
- * - Returns emit() for sending client events
+ * - Dispatches all incoming server events to the Zustand store
+ * - Exposes emit() for sending client events and startSession() for session bootstrap
  *
  * Socket.IO is loaded dynamically to prevent SSR issues in Next.js.
  */
@@ -37,15 +37,24 @@ export function useRealtimeConnection() {
     setListening,
     setSpeaking,
     setCurrentSession,
+    assistantMode,
   } = useAssistantStore.getState();
 
   const handleServerEvent = useCallback((event: ServerEvent) => {
-    // Fan-out to registered handlers
     for (const h of handlersRef.current) h(event);
 
     switch (event.type) {
       case 'session.created':
         setConnectionState('authenticated');
+        // Populate currentSession in the store
+        setCurrentSession({
+          id: event.sessionId,
+          userId: event.userId,
+          assistantMode: useAssistantStore.getState().assistantMode,
+          messageCount: 0,
+          createdAt: new Date(event.timestamp),
+          updatedAt: new Date(event.timestamp),
+        });
         break;
 
       case 'assistant.thinking':
@@ -57,7 +66,6 @@ export function useRealtimeConnection() {
       case 'assistant.response_started':
         setThinking(false);
         setStreaming(true);
-        // Add streaming placeholder message
         addMessage({
           id: event.messageId,
           sessionId: event.sessionId,
@@ -80,6 +88,19 @@ export function useRealtimeConnection() {
           status: 'completed',
           metadata: { emotionState: event.emotionState, tokensUsed: event.tokensUsed },
         });
+        break;
+
+      case 'assistant.interrupted':
+        setThinking(false);
+        setStreaming(false);
+        // Mark last streaming message as interrupted
+        {
+          const msgs = useAssistantStore.getState().messages;
+          const last = msgs.findLast?.((m) => m.status === 'streaming');
+          if (last) updateMessage(last.id, { status: 'interrupted' });
+        }
+        setAvatarState('idle');
+        setEmotionState('idle');
         break;
 
       case 'assistant.state_changed':
@@ -108,6 +129,13 @@ export function useRealtimeConnection() {
         setStreaming(false);
         setAvatarState('idle');
         setEmotionState('idle');
+        // Route error to toast store
+        useAssistantStore.getState().addToast?.({
+          id: crypto.randomUUID(),
+          type: 'error',
+          message: event.message,
+          code: event.code,
+        });
         break;
     }
   }, [
@@ -116,14 +144,23 @@ export function useRealtimeConnection() {
     setPartialTranscript, setListening, setSpeaking, setCurrentSession,
   ]);
 
+  const startSession = useCallback((sessionId?: string, mode?: string) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('session.start', {
+        type: 'session.start',
+        sessionId,
+        assistantMode: mode ?? useAssistantStore.getState().assistantMode,
+      });
+    }
+  }, []);
+
   const connect = useCallback(async () => {
-    // Dynamic import to avoid SSR
     const { io } = await import('socket.io-client');
 
     const socket = io(`${WS_URL}/realtime`, {
       transports: ['websocket'],
       autoConnect: true,
-      reconnection: false, // We handle reconnection manually
+      reconnection: false,
     });
 
     socketRef.current = socket;
@@ -135,7 +172,9 @@ export function useRealtimeConnection() {
 
     socket.on('disconnect', () => {
       setConnectionState('disconnected');
-      // Manual reconnect with jitter backoff
+      // Signal useConversation to re-bootstrap on next connect
+      useAssistantStore.getState().setCurrentSession(null);
+
       const delay = computeReconnectDelay(reconnectAttempt.current, DEFAULT_RECONNECT_CONFIG);
       reconnectAttempt.current = Math.min(reconnectAttempt.current + 1, 10);
       setTimeout(() => { void connect(); }, delay);
@@ -145,7 +184,6 @@ export function useRealtimeConnection() {
       setConnectionState('error');
     });
 
-    // Bind all typed server events
     const SERVER_EVENTS: ServerEvent['type'][] = [
       'session.created', 'session.error',
       'partial_transcript', 'final_transcript',
@@ -163,7 +201,6 @@ export function useRealtimeConnection() {
     setConnectionState('connecting');
   }, [handleServerEvent, setConnectionState]);
 
-  // Auto-connect on mount
   useEffect(() => {
     void connect();
     return () => {
@@ -176,14 +213,6 @@ export function useRealtimeConnection() {
       socketRef.current.emit(event.type, event);
     }
   }, []);
-
-  const startSession = useCallback((sessionId?: string, assistantMode?: string) => {
-    emit({
-      type: 'session.start',
-      sessionId,
-      assistantMode,
-    });
-  }, [emit]);
 
   const addHandler = useCallback((handler: EventHandler) => {
     handlersRef.current.push(handler);

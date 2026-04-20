@@ -17,6 +17,7 @@ export interface GenerateOptions {
   retrievedContext?: string;
   recentHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
   onChunk?: (chunk: LLMStreamChunk) => void;
+  abortSignal?: AbortSignal;
 }
 
 export interface GenerateResult {
@@ -72,7 +73,7 @@ export class LLMService implements OnModuleInit {
 
     if (opts.onChunk) {
       // Streaming mode
-      for await (const chunk of this.provider.generateStream(messages, { stream: true }, opts.onChunk)) {
+      for await (const chunk of this.provider.generateStream(messages, { stream: true }, opts.onChunk, opts.abortSignal)) {
         fullContent += chunk.delta;
       }
 
@@ -124,9 +125,10 @@ export class LLMService implements OnModuleInit {
           latencyMs: 10,
         };
       },
-      async *generateStream(_messages: LLMMessage[], _opts?: LLMGenerationOptions, onChunk?: (c: LLMStreamChunk) => void): AsyncGenerator<LLMStreamChunk> {
+      async *generateStream(_messages: LLMMessage[], _opts?: LLMGenerationOptions, onChunk?: (c: LLMStreamChunk) => void, abortSignal?: AbortSignal): AsyncGenerator<LLMStreamChunk> {
         const text = 'LLM sağlayıcısı yapılandırılmadı. .env dosyasına OPENAI_API_KEY ekleyin.';
         for (let i = 0; i < text.length; i++) {
+          if (abortSignal?.aborted) return;
           const chunk: LLMStreamChunk = { delta: text[i] ?? '', index: i };
           onChunk?.(chunk);
           yield chunk;

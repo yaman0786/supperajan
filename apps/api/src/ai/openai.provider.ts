@@ -80,6 +80,7 @@ export class OpenAIProvider implements ILLMProvider {
     messages: LLMMessage[],
     options: LLMGenerationOptions = {},
     onChunk?: (chunk: LLMStreamChunk) => void,
+    abortSignal?: AbortSignal,
   ): AsyncGenerator<LLMStreamChunk> {
     const body = {
       model: options.model ?? this.defaultModel,
@@ -96,6 +97,7 @@ export class OpenAIProvider implements ILLMProvider {
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(body),
+      signal: abortSignal,
     });
 
     if (!res.ok || !res.body) {
@@ -107,39 +109,48 @@ export class OpenAIProvider implements ILLMProvider {
     let index = 0;
     let buffer = '';
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    try {
+      while (true) {
+        if (abortSignal?.aborted) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() ?? '';
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed.startsWith('data:')) continue;
-        const data = trimmed.slice(5).trim();
-        if (data === '[DONE]') return;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
 
-        try {
-          const parsed = JSON.parse(data) as {
-            choices: Array<{
-              delta?: { content?: string };
-              finish_reason?: string;
-            }>;
-          };
-          const delta = parsed.choices[0]?.delta?.content ?? '';
-          const finishReason = parsed.choices[0]?.finish_reason ?? undefined;
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const data = trimmed.slice(5).trim();
+          if (data === '[DONE]') return;
 
-          if (delta || finishReason) {
-            const chunk: LLMStreamChunk = { delta, index: index++, finishReason };
-            onChunk?.(chunk);
-            yield chunk;
+          try {
+            const parsed = JSON.parse(data) as {
+              choices: Array<{
+                delta?: { content?: string };
+                finish_reason?: string;
+              }>;
+            };
+            const delta = parsed.choices[0]?.delta?.content ?? '';
+            const finishReason = parsed.choices[0]?.finish_reason ?? undefined;
+
+            if (delta || finishReason) {
+              const chunk: LLMStreamChunk = { delta, index: index++, finishReason };
+              onChunk?.(chunk);
+              yield chunk;
+            }
+          } catch {
+            // malformed SSE line — skip
           }
-        } catch {
-          // malformed SSE line — skip
         }
       }
+    } catch (err) {
+      // Swallow abort errors — barge-in is expected
+      if ((err as Error).name !== 'AbortError') throw err;
+    } finally {
+      reader.releaseLock();
     }
   }
 

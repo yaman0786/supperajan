@@ -3,8 +3,14 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import type { EmotionState, ChatMessage, ChatSession, AssistantMode } from '@supperajan/types';
 import type { AvatarAnimationState, ConnectionState } from '@supperajan/types';
 
-// Re-export ConnectionState from realtime types
 export type { ConnectionState };
+
+export interface Toast {
+  id: string;
+  type: 'error' | 'warning' | 'info' | 'success';
+  message: string;
+  code?: string;
+}
 
 export interface AssistantStore {
   // ─── Session ───────────────────────────────────────────────────────────────
@@ -53,6 +59,11 @@ export interface AssistantStore {
   isStreaming: boolean;
   setThinking: (thinking: boolean) => void;
   setStreaming: (streaming: boolean) => void;
+
+  // ─── Toasts ───────────────────────────────────────────────────────────────
+  toasts: Toast[];
+  addToast: (toast: Toast) => void;
+  removeToast: (id: string) => void;
 }
 
 export const useAssistantStore = create<AssistantStore>()(
@@ -127,5 +138,12 @@ export const useAssistantStore = create<AssistantStore>()(
         emotionState: isThinking ? 'thinking' : s.emotionState,
       })),
     setStreaming: (isStreaming) => set({ isStreaming }),
+
+    // Toasts
+    toasts: [],
+    addToast: (toast) =>
+      set((s) => ({ toasts: [...s.toasts, toast] })),
+    removeToast: (id) =>
+      set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
   })),
 );

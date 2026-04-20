@@ -6,6 +6,7 @@ import { ConversationPanel } from '@/components/chat/ConversationPanel';
 import { ControlBar } from '@/components/controls/ControlBar';
 import { AssistantStatusBadge } from '@/components/ui/AssistantStatusBadge';
 import { ConnectionBanner } from '@/components/ui/ConnectionBanner';
+import { Toaster } from '@/components/ui/Toast';
 import { SidePanel } from '@/components/workspace/SidePanel';
 import { RealtimeProvider } from '@/components/workspace/RealtimeProvider';
 import { useAssistantStore } from '@/store/assistant.store';
@@ -84,7 +85,10 @@ export function AssistantWorkspace() {
           <ConversationPanel />
         </section>
 
-        {/* ── Mobile: Bottom tab bar ───────────────────────────────────────── */}
+        {/* ── Toast notifications ─────────────────────────────────────────── */}
+      <Toaster />
+
+      {/* ── Mobile: Bottom tab bar ───────────────────────────────────────── */}
         <nav className="absolute inset-x-0 bottom-0 z-40 flex border-t border-bg-border bg-bg-surface/95 backdrop-blur-sm lg:hidden">
           <MobileTab
             label="Avatar"
